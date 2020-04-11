@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore')
 from sklearn.model_selection import train_test_split
 import src.utility_matrix as um
 import src.user_clustering as clt
-import src.svd as sv
+import src.svd as svd
 import src.combination as comb
 import src.decision_tree as tree
 
@@ -45,3 +45,14 @@ sliced_matrix = utility_matrix[0:1000,:]
 normalised = um.get_distance_matrix(sliced_matrix)
 um.plot_hgram(normalised,'sliced_utility_cosine_normalised.png')
 
+# Eyad code
+
+
+
+# Please keep the clusters matrix as its my input. Thanks -Eria :)
+
+
+
+# Clusters variable is created by Eyads code
+# Perfom SVD on the clustered matrix to reduce sparcity
+# svd_matrix=svd.svd(clusters,sliced_matrix)
