@@ -7,16 +7,16 @@ from sklearn.metrics import pairwise_distances
 import seaborn as sns
 import os
 
-def create_utility_matrix(df):
-    '''
 
+def create_utility_matrix(df):
+    """
     Generate utility matrix from dataframe;
     first create blank X users and Y hotel clusters matrix,
     and fill it with ratings from dataframe df.
 
     :param df: Dataframe from which you want to create UM.
     :return: utility matrix
-    '''
+    """
 
     # Create an int Numpy matrix out of 0th, 1th, and 4th columns from dataframe.
     data_matrix = df.iloc[:, [0, 1, 4]].to_numpy().astype(int)
@@ -31,11 +31,12 @@ def create_utility_matrix(df):
     np.add.at(utility_matrix, x, data_matrix[:,2])
     return utility_matrix
 
+
 def get_distance_matrix(matrix):
-    '''
+    """
     :param matrix: utility matrix
     :return: distance matrix with cosine distances
-    '''
+    """
 
     # Calculations done on sliced utility matrix
 
@@ -95,11 +96,11 @@ def test_cosine():
     print(dist_out)
 
 
-
-def calculate_RAM(dim_x,dim_y):
-    n = np.zeros((dim_x,dim_y))
+def calculate_ram(dim_x, dim_y):
+    n = np.zeros((dim_x, dim_y))
     z = (n.size * n.itemsize)
     print('Matrix takes: ',z/1000000000,'GB RAM')
+
 
 def plot_hgram(matrix,name):
     plt.figure(figsize=(20,20))

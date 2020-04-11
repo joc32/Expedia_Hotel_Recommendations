@@ -39,7 +39,7 @@ temp['rating'] = np.where((temp['is_booking'] == 1),5,1).astype(float)
 utility_matrix = um.create_utility_matrix(df=temp)
 
 # Then slice it to 1000 rows for further analysis.
-sliced_matrix = utility_matrix[0:1000,:]
+sliced_matrix = utility_matrix[0:1000, :]
 
 #Perform the Cosine Distance Calculation on our sliced matrix.
 normalised = um.get_distance_matrix(sliced_matrix)
