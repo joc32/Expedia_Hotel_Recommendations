@@ -16,6 +16,7 @@ import src.user_clustering as clt
 import src.svd as svd
 import src.combination as comb
 import src.decision_tree as tree
+from src.user_clustering import  cluster_users
 
 
 # Load our dataset
@@ -46,8 +47,8 @@ normalised = um.get_distance_matrix(sliced_matrix)
 um.plot_hgram(normalised,'sliced_utility_cosine_normalised.png')
 
 # Eyad code
-
-
+clusters = cluster_users(normalised,temp)
+print(clusters.head(100))
 
 # Please keep the clusters matrix as its my input. Thanks -Eria :)
 
