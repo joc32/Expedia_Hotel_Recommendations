@@ -16,5 +16,5 @@ def cluster_users(distance_matrix,dataframe):
     clusters = cluster.fit_predict(distance_matrix)
 
     df = add_clusters_to_frame(dataframe,clusters)
-
+    print(df.head(10))
     return df

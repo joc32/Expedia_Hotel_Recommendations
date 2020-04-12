@@ -18,7 +18,7 @@ import src.combination as comb
 import src.decision_tree as tree
 from src.user_clustering import  cluster_users
 from src.combination import create_destination_matrix, create_r_matrix, recommend_best_hotel_cluster
-
+from src.evaluation import map5eval
 
 # Load our dataset
 train = pd.read_csv(os.path.join('datasets','1percent.csv'))
@@ -61,14 +61,18 @@ svd_matrix=svd.svd(clusters,sliced_matrix)
 # remove is_booking column which is no more needed
 clusters = clusters.iloc[:, [0, 1, 3, 4]]
 
-
 #  sort by srch_destination_in
 clusters.sort_values(by=['srch_destination_id'], inplace=True)
-
 
 destination_matrix = create_destination_matrix(clusters)
 r_matrix = create_r_matrix(destination_matrix, sliced_matrix)
 
+
 user_cluster = 1
+
 top_5_hotels = recommend_best_hotel_cluster(user_cluster, r_matrix, destination_matrix)
 print(top_5_hotels)
+
+clusters['recommended'] = recommend_best_hotel_cluster(int(clusters['clusters']), r_matrix, destination_matrix)
+
+map5eval(clusters['recommended'], clusters['hotel_cluster'])
