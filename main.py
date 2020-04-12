@@ -20,12 +20,27 @@ from src.user_clustering import  cluster_users
 from src.combination import create_destination_matrix, create_r_matrix, recommend_best_hotel_cluster
 from src.evaluation import map5eval
 
-# Load our dataset
+
+def get_user_cluster():
+    print('NOT IMPLEMENTED')
+    exit()
+
+def get_decision_tree():
+    print('NOT IMPLEMENTED')
+    exit()
+
+def process_test(test_ids, train):
+    test_ids['present_in_train'] = test_ids['user_id'].isin(train['user_id'])
+    print(test_ids[test_ids['present_in_train'] == True])
+    test_ids['recommendations'] = np.where((test_ids['present_in_train'] == True), get_user_cluster(), get_decision_tree())
+
+
+# Load our train dataset
+
 train = pd.read_csv(os.path.join('datasets','1percent.csv'))
 print('number of rows in sample', len(train))
-print(train.head(5))
 
-# Create a dataframe only with columns we need. And sort it by user_id.
+#Create a dataframe only with columns we need. And sort it by user_id.
 temp = train[['user_id','hotel_cluster','is_booking', 'srch_destination_id']]
 temp.sort_values(by=['user_id'],inplace=True)
 
@@ -68,11 +83,18 @@ destination_matrix = create_destination_matrix(clusters)
 r_matrix = create_r_matrix(destination_matrix, sliced_matrix)
 
 
+# Test our algorithm on one user cluster. Not needed later.
 user_cluster = 1
-
 top_5_hotels = recommend_best_hotel_cluster(user_cluster, r_matrix, destination_matrix)
 print(top_5_hotels)
 
-clusters['recommended'] = recommend_best_hotel_cluster(int(clusters['clusters']), r_matrix, destination_matrix)
 
+clusters['recommended_train'] = recommend_best_hotel_cluster(int(clusters['clusters']), r_matrix, destination_matrix)
 map5eval(clusters['recommended'], clusters['hotel_cluster'])
+
+
+# TEST DATASET FROM HERE
+test = pd.read_csv(os.path.join('datasets','test.csv'))
+test_ids = test[['user_id']]
+
+process_test(test_ids, train)
