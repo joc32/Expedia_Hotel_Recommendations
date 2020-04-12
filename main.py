@@ -51,13 +51,20 @@ um.plot_hgram(normalised,'sliced_utility_cosine_normalised.png')
 clusters = cluster_users(normalised,temp)
 print(clusters.head(100))
 print('neco')
+
+# Clusters variable is created by Eyads code
+# Perfom SVD on the clustered matrix to reduce sparcity
+svd_matrix=svd.svd(clusters,sliced_matrix)
+
 # Please keep the clusters matrix as its my input. Thanks -Eria :)
 
 # remove is_booking column which is no more needed
 clusters = clusters.iloc[:, [0, 1, 3, 4]]
 
+
 #  sort by srch_destination_in
 clusters.sort_values(by=['srch_destination_id'], inplace=True)
+
 
 destination_matrix = create_destination_matrix(clusters)
 r_matrix = create_r_matrix(destination_matrix, sliced_matrix)
@@ -65,8 +72,3 @@ r_matrix = create_r_matrix(destination_matrix, sliced_matrix)
 user_cluster = 1
 top_5_hotels = recommend_best_hotel_cluster(user_cluster, r_matrix, destination_matrix)
 print(top_5_hotels)
-
-
-# Clusters variable is created by Eyads code
-# Perfom SVD on the clustered matrix to reduce sparcity
-# svd_matrix=svd.svd(clusters,sliced_matrix)
