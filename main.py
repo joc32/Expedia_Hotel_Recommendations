@@ -17,6 +17,7 @@ import src.svd as svd
 import src.combination as comb
 import src.decision_tree as tree
 from src.user_clustering import  cluster_users
+from src.combination import create_destination_matrix, create_r_matrix, recommend_best_hotel_cluster
 
 
 # Load our dataset
@@ -49,9 +50,21 @@ um.plot_hgram(normalised,'sliced_utility_cosine_normalised.png')
 # Eyad code
 clusters = cluster_users(normalised,temp)
 print(clusters.head(100))
-
+print('neco')
 # Please keep the clusters matrix as its my input. Thanks -Eria :)
 
+# remove is_booking column which is no more needed
+clusters = clusters.iloc[:, [0, 1, 3, 4]]
+
+#  sort by srch_destination_in
+clusters.sort_values(by=['srch_destination_id'], inplace=True)
+
+destination_matrix = create_destination_matrix(clusters)
+r_matrix = create_r_matrix(destination_matrix, sliced_matrix)
+
+user_cluster = 1
+top_5_hotels = recommend_best_hotel_cluster(user_cluster, r_matrix, destination_matrix)
+print(top_5_hotels)
 
 
 # Clusters variable is created by Eyads code
