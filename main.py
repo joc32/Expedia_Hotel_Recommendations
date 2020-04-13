@@ -35,6 +35,8 @@ def process_test(test_ids, train):
     test_ids['recommendations'] = np.where((test_ids['present_in_train'] == True), get_user_cluster(), get_decision_tree())
 
 
+SLICE_LENGTH = 1000
+
 # Load our train dataset
 
 train = pd.read_csv(os.path.join('datasets','1percent.csv'))
@@ -56,11 +58,11 @@ temp['rating'] = np.where((temp['is_booking'] == 1),5,1)
 utility_matrix = um.create_utility_matrix(df=temp)
 
 # Then slice it to 1000 rows for further analysis.
-sliced_matrix = utility_matrix[0:1000, :]
+sliced_matrix = utility_matrix[0:SLICE_LENGTH, :]
 
 #Perform the Cosine Distance Calculation on our sliced matrix.
 normalised = um.get_distance_matrix(sliced_matrix)
-um.plot_hgram(normalised,'sliced_utility_cosine_normalised.png')
+um.plot_hgram(normalised,'sliced_utility_cosine_normalised'+str(SLICE_LENGTH)+'.png')
 
 # Eyad code
 clusters = cluster_users(normalised,temp)
@@ -89,18 +91,25 @@ print(top_5_hotels)
 
 
 clusters['recommended_train'] = pd.Series(index=clusters.index, dtype=object)
+clusters['sum'] = pd.Series(index=clusters.index, dtype=int)
 
 # Vectorised implementation doesnt want to work, for now left.
 #clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['hotel_cluster'], r_matrix, destination_matrix)
 
 for i,row in clusters.iterrows():
     clusters.at[i,'recommended_train'] = recommend_best_hotel_cluster(row[1], r_matrix, destination_matrix)
+    clusters.at[i,'sum'] = sum(clusters.at[i,'recommended_train'])
 
 print('recommended clusters are')
 print(clusters.head(100))
 
+plt.figure()
+plt.title('Variance in Recommended Clusters')
+plt.hist(clusters['sum'])
+plt.show()
 
-map5eval(clusters['recommended_train'], clusters['hotel_cluster'])
+
+map5eval(clusters['recommended'], clusters['hotel_cluster'])
 
 
 # TEST DATASET FROM HERE
