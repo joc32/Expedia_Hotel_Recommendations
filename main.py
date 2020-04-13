@@ -88,9 +88,19 @@ top_5_hotels = recommend_best_hotel_cluster(user_cluster, r_matrix, destination_
 print(top_5_hotels)
 
 
-clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['clusters'], r_matrix, destination_matrix)
-print(clusters.head())
-map5eval(clusters['recommended'], clusters['hotel_cluster'])
+clusters['recommended_train'] = pd.Series(index=clusters.index, dtype=object)
+
+# Vectorised implementation doesnt want to work, for now left.
+#clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['hotel_cluster'], r_matrix, destination_matrix)
+
+for i,row in clusters.iterrows():
+    clusters.at[i,'recommended_train'] = recommend_best_hotel_cluster(row[1], r_matrix, destination_matrix)
+
+print('recommended clusters are')
+print(clusters.head(100))
+
+
+map5eval(clusters['recommended_train'], clusters['hotel_cluster'])
 
 
 # TEST DATASET FROM HERE

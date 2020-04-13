@@ -85,6 +85,6 @@ def recommend_best_hotel_cluster(user_cluster, r_matrix, destination_matrix):
     top_5_h_clusters = np.argsort(-sel_dest_row)[:5]
 
     # print 5 best matches for given user_cluster
-    print('for user_cluster {}, best hotel_clusters are {}'.format(user_cluster, top_5_h_clusters))
+    #print('for user_cluster {}, best hotel_clusters are {}'.format(user_cluster, top_5_h_clusters))
 
     return top_5_h_clusters
