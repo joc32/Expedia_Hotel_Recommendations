@@ -49,7 +49,7 @@ print('\n Number of unique User IDs:',temp['user_id'].nunique())
 
 # Create Rating column for our dataframe.
 # Where booking == 1, give rating 5 otherwise give rating 1.
-temp['rating'] = np.where((temp['is_booking'] == 1),5,1).astype(float)
+temp['rating'] = np.where((temp['is_booking'] == 1),5,1)
 
 
 # Create utility matrix out of temp
@@ -65,11 +65,10 @@ um.plot_hgram(normalised,'sliced_utility_cosine_normalised.png')
 # Eyad code
 clusters = cluster_users(normalised,temp)
 print(clusters.head(100))
-print('neco')
 
 # Clusters variable is created by Eyads code
 # Perfom SVD on the clustered matrix to reduce sparcity
-svd_matrix=svd.svd(clusters,sliced_matrix)
+svd_matrix=svd.construct_svd(clusters,sliced_matrix)
 
 # Please keep the clusters matrix as its my input. Thanks -Eria :)
 
@@ -89,7 +88,8 @@ top_5_hotels = recommend_best_hotel_cluster(user_cluster, r_matrix, destination_
 print(top_5_hotels)
 
 
-clusters['recommended_train'] = recommend_best_hotel_cluster(int(clusters['clusters']), r_matrix, destination_matrix)
+clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['clusters'], r_matrix, destination_matrix)
+print(clusters.head())
 map5eval(clusters['recommended'], clusters['hotel_cluster'])
 
 

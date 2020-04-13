@@ -9,8 +9,7 @@ def create_destination_matrix(subset_data):
     :param subset_data: subset df of user logs containing srch_destination_id
     :return: destination matrix
     """
-
-    np_subset_matrix = np.array(subset_data)
+    np_subset_matrix = subset_data.to_numpy()
     print(np_subset_matrix[:10])
     last_dest_id = np_subset_matrix[-1, 2]
     n_hotel_clusters = 100

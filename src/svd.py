@@ -3,7 +3,7 @@ import torch
 import numpy as np
 
 
-def svd(clusters, sliced_matrix):
+def construct_svd(clusters, sliced_matrix):
     """
     Performs the Singular Value Decomposition on the utility matrix, to fill in the unknown values.
     It seeks to find a low-rank matrix X=UV.T, that minimizes the sum-square
@@ -20,7 +20,7 @@ def svd(clusters, sliced_matrix):
     """
     # We need to compress utility matrix by replacing user_id with user_cluster
     # and remove all rows where user_cluster repeats
-    unique_clusters = np.unique(clusters, return_index=True)
+    unique_clusters = np.unique(clusters['clusters'], return_index=True)
     # create matrix user_cluster x hotel_cluster
     clustered_matrix = sliced_matrix[unique_clusters[1]]
 
@@ -77,7 +77,7 @@ def sgd(m, rank, num_epochs, a, lamda):
     return U, V
 
 
-def construct_svd(u, v, m):
+def svd(u, v, m):
     """
     Calculates matrix X based on:
         X=U@V.T
