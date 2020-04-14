@@ -1,6 +1,7 @@
 from numpy.linalg import matrix_rank
 import torch
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def construct_svd(clusters, sliced_matrix):
@@ -29,14 +30,18 @@ def construct_svd(clusters, sliced_matrix):
     rank = matrix_rank(clustered_matrix)
 
     # Perfom Stochastic Gradient Descent to find U,V for X=U@V.T
-    U, V = sgd(clustered_matrix, rank, 1000, 0.01, 0.01)
+
+    epochs = 200
+
+    U, V = sgd(clustered_matrix, rank, num_epochs=epochs, a=0.01, lamda=0.01, calculate_loss='FALSE')
+
 
     # Performs multiplication of the two matrices  X=U@V.T
     new_clustered = svd(U, V, clustered_matrix)
     return new_clustered
 
 
-def sgd(m, rank, num_epochs, a, lamda):
+def sgd(m, rank, num_epochs, a, lamda, calculate_loss):
     """
      Implements the Strochastic Gradient Descent.
      Tries to find U and V that minimizes the sum square distance to M.
@@ -56,6 +61,11 @@ def sgd(m, rank, num_epochs, a, lamda):
     :param lamda: regularization parameter
     :return: U,V
     """
+
+    losses = []
+    m = torch.from_numpy(m) #Cast the numpy matrix to Torch Tensor.
+
+
     # n: number of user_clusters (112)
     n = m.shape[0]
     # k: number of hotel_clusters (100)
@@ -74,7 +84,22 @@ def sgd(m, rank, num_epochs, a, lamda):
                     e2 = m[r][c]-U[r, :].t()@V[c, :]
                     U[r, :] = U[r, :]+a*(e1*V[c, :]-lamda*U[r, :])
                     V[c, :] = V[c, :]+a*(e2*U[r, :]-lamda*V[c, :])
+        if calculate_loss == 'TRUE':
+            print(epoch)
+            losses.append(torch.nn.functional.mse_loss(input=m, target=U @ V.t(), reduction='sum'))
+
+    if calculate_loss == 'TRUE':
+        plt.figure()
+        plt.ticklabel_format(style='plain')
+        plt.title('SVD LOSS epoch num %s rank %s' % (num_epochs, rank))
+        plt.plot(range(len(losses)), losses)
+        plt.savefig('figures/svd_plot_' + str(num_epochs) + 'epochs.png')
+
+
     return U, V
+
+
+
 
 
 def svd(u, v, m):
