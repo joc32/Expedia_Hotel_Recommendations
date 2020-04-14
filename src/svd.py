@@ -33,12 +33,20 @@ def construct_svd(clusters, sliced_matrix):
 
     epochs = 200
 
+    from src.utility_matrix import plot_hgram
+
+    plot_hgram(clustered_matrix,'Clustered Matrix before SVD')
+
     U, V = sgd(clustered_matrix, rank, num_epochs=epochs, a=0.01, lamda=0.01, calculate_loss='FALSE')
 
+    plot_hgram(U@V.t(),'Clustered Matrix SVD REDUCED')
 
     # Performs multiplication of the two matrices  X=U@V.T
-    new_clustered = svd(U, V, clustered_matrix)
-    return new_clustered
+    #new_clustered = svd(U, V, clustered_matrix)
+
+    new_clustered = U@V.t()
+
+    return new_clustered.numpy()
 
 
 def sgd(m, rank, num_epochs, a, lamda, calculate_loss):
