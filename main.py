@@ -65,23 +65,23 @@ normalised = um.get_distance_matrix(sliced_matrix)
 um.plot_hgram(normalised,'sliced_utility_cosine_normalised'+str(SLICE_LENGTH)+'.png')
 
 # Eyad code
-clusters = cluster_users(normalised,temp)
-print(clusters.head(100))
+clustered_df, clusters = cluster_users(normalised,temp)
+print(clustered_df.head())
 
 # Clusters variable is created by Eyads code
-# Perfom SVD on the clustered matrix to reduce sparcity
-svd_matrix=svd.construct_svd(clusters,sliced_matrix)
+# Perform SVD on the clustered matrix to reduce sparsity
+utility_svd_matrix = svd.construct_svd(clusters,sliced_matrix)
 
 # Please keep the clusters matrix as its my input. Thanks -Eria :)
 
 # remove is_booking column which is no more needed
-clusters = clusters.iloc[:, [0, 1, 3, 4]]
+temp = temp.iloc[:, [0, 1, 3, 4]]
 
 #  sort by srch_destination_in
-clusters.sort_values(by=['srch_destination_id'], inplace=True)
+temp.sort_values(by=['srch_destination_id'], inplace=True)
 
-destination_matrix = create_destination_matrix(clusters)
-r_matrix = create_r_matrix(destination_matrix, sliced_matrix)
+destination_matrix = create_destination_matrix(temp)
+r_matrix = create_r_matrix(utility_svd_matrix, destination_matrix)
 
 
 # Test our algorithm on one user cluster. Not needed later.
@@ -90,30 +90,30 @@ top_5_hotels = recommend_best_hotel_cluster(user_cluster, r_matrix, destination_
 print(top_5_hotels)
 
 
-clusters['recommended_train'] = pd.Series(index=clusters.index, dtype=object)
-clusters['sum'] = pd.Series(index=clusters.index, dtype=int)
+clustered_df['recommended_train'] = pd.Series(index=clustered_df.index, dtype=object)
+clustered_df['sum'] = pd.Series(index=clustered_df.index, dtype=int)
 
 # Vectorised implementation doesnt want to work, for now left.
 #clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['hotel_cluster'], r_matrix, destination_matrix)
 
-for i,row in clusters.iterrows():
-    clusters.at[i,'recommended_train'] = recommend_best_hotel_cluster(row[1], r_matrix, destination_matrix)
-    clusters.at[i,'sum'] = sum(clusters.at[i,'recommended_train'])
+for i, row in clustered_df.iterrows():
+    clustered_df.at[i, 'recommended_train'] = recommend_best_hotel_cluster(row[1], r_matrix, destination_matrix)
+    clustered_df.at[i, 'sum'] = sum(clustered_df.at[i, 'recommended_train'])
 
 print('recommended clusters are')
-print(clusters.head(100))
+print(clustered_df.head(100))
 
 plt.figure()
 plt.title('Variance in Recommended Clusters')
-plt.hist(clusters['sum'])
+plt.hist(clustered_df['sum'])
 plt.show()
 
 
-map5eval(clusters['recommended'], clusters['hotel_cluster'])
+map5eval(clustered_df['recommended'], clustered_df['hotel_cluster'])
 
 
 # TEST DATASET FROM HERE
-test = pd.read_csv(os.path.join('datasets','test.csv'))
+test = pd.read_csv(os.path.join('datasets', 'test.csv'))
 test_ids = test[['user_id']]
 
 process_test(test_ids, train)

@@ -5,8 +5,8 @@ import pandas as pd
 def add_clusters_to_frame(or_data, clusters):
     or_frame = pd.DataFrame(data=or_data)
     or_frame_labelled = pd.concat([or_frame, pd.DataFrame(clusters)], axis=1, join='inner')
-    or_frame_labelled.rename(columns={ or_frame_labelled.columns[-1]: "clusters" }, inplace = True)
-    return(or_frame_labelled)
+    or_frame_labelled.rename(columns={or_frame_labelled.columns[-1]: "clusters"}, inplace=True)
+    return (or_frame_labelled)
 
 def cluster_users(distance_matrix,dataframe):
     
@@ -17,4 +17,4 @@ def cluster_users(distance_matrix,dataframe):
 
     df = add_clusters_to_frame(dataframe,clusters)
     print(df.head(10))
-    return df
+    return df, clusters

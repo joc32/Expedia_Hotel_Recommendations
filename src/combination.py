@@ -55,7 +55,7 @@ def create_destination_matrix(subset_data):
     return destination_matrix
 
 
-def create_r_matrix(destination_matrix, utility_matrix):
+def create_r_matrix(utility_matrix, destination_matrix):
     """
     Generate R matrix, which is a dot product of utility matrix and destination matrix;
 

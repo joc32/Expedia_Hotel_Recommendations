@@ -20,7 +20,7 @@ def construct_svd(clusters, sliced_matrix):
     """
     # We need to compress utility matrix by replacing user_id with user_cluster
     # and remove all rows where user_cluster repeats
-    unique_clusters = np.unique(clusters['clusters'], return_index=True)
+    unique_clusters = np.unique(clusters, return_index=True)
     # create matrix user_cluster x hotel_cluster
     clustered_matrix = sliced_matrix[unique_clusters[1]]
 
