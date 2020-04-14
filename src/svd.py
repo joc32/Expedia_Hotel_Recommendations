@@ -2,6 +2,7 @@ from numpy.linalg import matrix_rank
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+from src.utility_matrix import plot_hgram
 
 
 def construct_svd(clusters, sliced_matrix):
@@ -30,19 +31,11 @@ def construct_svd(clusters, sliced_matrix):
     rank = matrix_rank(clustered_matrix)
 
     # Perfom Stochastic Gradient Descent to find U,V for X=U@V.T
-
     epochs = 200
 
-    from src.utility_matrix import plot_hgram
-
     plot_hgram(clustered_matrix,'Clustered Matrix before SVD')
-
     U, V = sgd(clustered_matrix, rank, num_epochs=epochs, a=0.01, lamda=0.01, calculate_loss='FALSE')
-
-    plot_hgram(U@V.t(),'Clustered Matrix SVD REDUCED')
-
-    # Performs multiplication of the two matrices  X=U@V.T
-    #new_clustered = svd(U, V, clustered_matrix)
+    plot_hgram(U@V.t(), 'Clustered Matrix SVD REDUCED')
 
     new_clustered = U@V.t()
 
@@ -73,16 +66,11 @@ def sgd(m, rank, num_epochs, a, lamda, calculate_loss):
     losses = []
     m = torch.from_numpy(m) #Cast the numpy matrix to Torch Tensor.
 
-
-    # n: number of user_clusters (112)
-    n = m.shape[0]
-    # k: number of hotel_clusters (100)
-    k = m.shape[1]
+    n = m.shape[0]  # n: number of user_clusters (112)
+    k = m.shape[1]  # k: number of hotel_clusters (100)
     # Define U and V
-    # U[N,rank] N: number of user clusters
-    # V[rank,K] K: number of hotel clusters
-    U = torch.rand(n, rank)
-    V = torch.rand(k, rank)
+    U = torch.rand(n, rank)  # U[N,rank] N: number of user clusters
+    V = torch.rand(k, rank)  # V[K,rank] K: number of hotel clusters
     for epoch in range(num_epochs):
         for r in range(n):
             for c in range(k):
@@ -103,9 +91,58 @@ def sgd(m, rank, num_epochs, a, lamda, calculate_loss):
         plt.plot(range(len(losses)), losses)
         plt.savefig('figures/svd_plot_' + str(num_epochs) + 'epochs.png')
 
-
     return U, V
 
+
+def sgd_jozef(m, rank, num_epochs, a, lamda, calculate_loss):
+    """
+     Implements the Strochastic Gradient Descent.
+     Tries to find U and V that minimizes the sum square distance to M.
+     This is done through derivatives of the sum square distance to M,
+     with respect to U and V.
+     U and V are initialised to random values drawn from Gaussian distribution.
+     For the number of epochs:
+        the algorithm iterates over all known values of the M, and calculates the
+        new values of U and V based on the derivatives as shown below:
+        Ui := Ui + α((Mik − VkT Ui)Vk − λUi)
+        Vk := Vk + α((Mik − UiT Vk)Ui − λVk)
+
+    :param m: utility matrix
+    :param rank: the rank of the utility matrix M.
+    :param num_epochs: number of iterations
+    :param a: the learning rate
+    :param lamda: regularization parameter
+    :return: U,V
+    """
+
+    losses = []
+    binary_mask = np.ma.make_mask(m).astype(int)
+    m = torch.from_numpy(m) #Cast the numpy matrix to Torch Tensor.
+
+    n = m.shape[0]  # n: number of user_clusters (112)
+    k = m.shape[1]  # k: number of hotel_clusters (100)
+    # Define U and V
+    U = torch.rand(n, rank)  # U[N,rank] N: number of user clusters
+    V = torch.rand(k, rank)  # V[K,rank] K: number of hotel clusters
+    for epoch in range(num_epochs):
+        for r in range(n):
+            for c in range(k):
+                if m[r][c] > 0:
+                    e = binary_mask[r][c] - U[r, :] @ V[c, :].t()
+                    U[r, :] = U[r, :] + a * e * V[c, :]
+                    V[c, :] = V[c, :] + a * e * U[r, :]
+        if calculate_loss == 'TRUE':
+            print(epoch)
+            losses.append(torch.nn.functional.mse_loss(input=m, target=U @ V.t(), reduction='sum'))
+
+    if calculate_loss == 'TRUE':
+        plt.figure()
+        plt.ticklabel_format(style='plain')
+        plt.title('SVD LOSS epoch num %s rank %s' % (num_epochs, rank))
+        plt.plot(range(len(losses)), losses)
+        plt.savefig('figures/svd_plot_' + str(num_epochs) + 'epochs.png')
+
+    return U, V
 
 
 
