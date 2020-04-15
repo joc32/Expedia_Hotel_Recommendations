@@ -22,6 +22,13 @@ from src.user_clustering import  cluster_users
 from src.combination import create_destination_matrix, create_r_matrix, recommend_best_hotel_cluster, recommend_5_top_hotel_cluster_2
 from src.evaluation import map5eval
 
+preds = np.array([[3,2,4,5,6], [5,3,1,2,4]])
+label = np.array([[10], [30]])
+
+smth = map5eval(preds, label)
+
+print(smth)
+
 
 def get_user_cluster():
     print('NOT IMPLEMENTED')
@@ -122,7 +129,8 @@ plt.title('Variance in Recommended Clusters')
 plt.hist(list(itertools.chain(*clustered_df['recommended_train'].values)),bins=100)
 plt.savefig('figures/hotel_cluster_counts.png')
 
-map5eval(clustered_df['recommended_train'], clustered_df['hotel_cluster'])
+map5neco = map5eval(clustered_df['recommended_train'], clustered_df['hotel_cluster'])
+print('map5', map5neco)
 
 
 # TEST DATASET FROM HERE
