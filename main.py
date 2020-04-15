@@ -44,7 +44,7 @@ def process_test(test_ids, train):
     test_ids['recommendations'] = np.where((test_ids['present_in_train'] == True), get_user_cluster(), get_decision_tree())
 
 
-SLICE_LENGTH = 2000
+SLICE_LENGTH = 1000
 
 # Load our train dataset
 
@@ -123,6 +123,7 @@ for i, row in clustered_df.iterrows():
 
 print('recommended clusters are')
 print(clustered_df.head(100))
+
 
 plt.figure()
 plt.title('Variance in Recommended Clusters')
