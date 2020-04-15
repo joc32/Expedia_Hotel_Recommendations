@@ -134,6 +134,9 @@ map5neco = map5eval(clustered_df['recommended_train'], clustered_df['hotel_clust
 print('map5', map5neco)
 
 
+
+
+
 # TEST DATASET FROM HERE
 test = pd.read_csv(os.path.join('datasets', 'test.csv'))
 test_ids = test[['user_id']]
