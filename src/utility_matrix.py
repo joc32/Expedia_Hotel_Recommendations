@@ -96,10 +96,10 @@ def test_cosine():
     print(dist_out)
 
 
-def calculate_ram(dim_x, dim_y):
-    n = np.zeros((dim_x, dim_y))
-    z = (n.size * n.itemsize)
-    print('Matrix takes: ',z/1000000000,'GB RAM')
+def calculate_ram(matrix):
+    print('slice shape is', matrix.shape[0], matrix.shape[1])
+    z = (matrix.size * matrix.itemsize)
+    print('Matrix takes: ', z/1000000000,'GB RAM')
 
 
 def plot_hgram(matrix,name):
