@@ -105,14 +105,14 @@ print(top_5_hotels)
 
 
 clustered_df['recommended_train'] = pd.Series(index=clustered_df.index, dtype=object)
-clustered_df['sum'] = pd.Series(index=clustered_df.index, dtype=int)
 
 # Vectorised implementation doesnt want to work, for now left.
 #clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['hotel_cluster'], r_matrix, destination_matrix)
+#clustered_df['recommended_train'] = recommend_5_top_hotel_cluster_2(clustered_df['clusters'],clustered_df['srch_destination_id'],utility_matrix,destination_matrix)
+
 
 for i, row in clustered_df.iterrows():
     clustered_df.at[i, 'recommended_train'] = recommend_5_top_hotel_cluster_2(clustered_df.at[i, 'clusters'], clustered_df.at[i, 'srch_destination_id'], utility_svd_matrix, destination_matrix)
-    clustered_df.at[i, 'sum'] = sum(clustered_df.at[i, 'recommended_train'])
 
 print('recommended clusters are')
 print(clustered_df.head(100))
