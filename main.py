@@ -35,7 +35,7 @@ def process_test(test_ids, train):
     test_ids['recommendations'] = np.where((test_ids['present_in_train'] == True), get_user_cluster(), get_decision_tree())
 
 
-SLICE_LENGTH = 1000
+SLICE_LENGTH = 2000
 
 # Load our train dataset
 

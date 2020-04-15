@@ -92,7 +92,6 @@ def recommend_best_hotel_cluster(user_cluster, r_matrix, destination_matrix):
 
 def recommend_5_top_hotel_cluster_2(user_cluster, destination_id, utility_matrix, destination_matrix):
     # element-wise multiplication of hotel_clusters for given user_cluster and hotel_cluster for given destination_id
-    r_vector = utility_matrix[user_cluster] * destination_matrix[destination_id]
+    r_vector = utility_matrix[user_cluster] * destination_matrix[destination_id - 1]
     top_5 = np.argsort(-r_vector)[:5]
-    print(top_5)
     return top_5
