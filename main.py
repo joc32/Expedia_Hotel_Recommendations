@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import warnings
 import os
+import itertools
+
 pd.set_option('display.precision', 10)
 pd.set_option('display.float_format', '{:.2f}'.format)
 pd.set_option('display.max_columns', None)
@@ -117,11 +119,10 @@ print(clustered_df.head(100))
 
 plt.figure()
 plt.title('Variance in Recommended Clusters')
-plt.hist(clustered_df['sum'])
-plt.show()
+plt.hist(list(itertools.chain(*clustered_df['recommended_train'].values)),bins=100)
+plt.savefig('figures/hotel_cluster_counts.png')
 
-
-map5eval(clustered_df['recommended'], clustered_df['hotel_cluster'])
+map5eval(clustered_df['recommended_train'], clustered_df['hotel_cluster'])
 
 
 # TEST DATASET FROM HERE
