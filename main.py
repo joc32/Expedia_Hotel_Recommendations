@@ -17,7 +17,7 @@ import src.svd as svd
 import src.combination as comb
 import src.decision_tree as tree
 from src.user_clustering import  cluster_users
-from src.combination import create_destination_matrix, create_r_matrix, recommend_best_hotel_cluster
+from src.combination import create_destination_matrix, create_r_matrix, recommend_best_hotel_cluster, recommend_5_top_hotel_cluster_2
 from src.evaluation import map5eval
 
 
@@ -86,8 +86,20 @@ r_matrix = create_r_matrix(utility_svd_matrix, destination_matrix)
 
 # Test our algorithm on one user cluster. Not needed later.
 user_cluster = 1
-top_5_hotels = recommend_best_hotel_cluster(user_cluster, r_matrix, destination_matrix)
+destination_id = 0
+top_5_hotels = recommend_5_top_hotel_cluster_2(user_cluster, destination_id, utility_svd_matrix, destination_matrix)
 print(top_5_hotels)
+
+#top_5_hotels = recommend_best_hotel_cluster(user_cluster, r_matrix, destination_matrix)
+#print(top_5_hotels)
+
+user_cluster = 2
+destination_id = 4
+top_5_hotels = recommend_5_top_hotel_cluster_2(user_cluster, destination_id, utility_svd_matrix, destination_matrix)
+print(top_5_hotels)
+
+#top_5_hotels = recommend_best_hotel_cluster(user_cluster, r_matrix, destination_matrix)
+#print(top_5_hotels)
 
 
 clustered_df['recommended_train'] = pd.Series(index=clustered_df.index, dtype=object)
@@ -97,7 +109,7 @@ clustered_df['sum'] = pd.Series(index=clustered_df.index, dtype=int)
 #clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['hotel_cluster'], r_matrix, destination_matrix)
 
 for i, row in clustered_df.iterrows():
-    clustered_df.at[i, 'recommended_train'] = recommend_best_hotel_cluster(row[1], r_matrix, destination_matrix)
+    clustered_df.at[i, 'recommended_train'] = recommend_5_top_hotel_cluster_2(clustered_df.at[i, 'user_id'], clustered_df.at[i, 'srch_destination_id'], utility_svd_matrix, destination_matrix)
     clustered_df.at[i, 'sum'] = sum(clustered_df.at[i, 'recommended_train'])
 
 print('recommended clusters are')
