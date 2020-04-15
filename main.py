@@ -131,7 +131,7 @@ plt.title('Variance in Recommended Clusters')
 plt.hist(list(itertools.chain(*clustered_df['recommended_train'].values)),bins=100)
 plt.savefig('figures/hotel_cluster_counts.png')
 
-map5neco = map5eval(clustered_df['recommended_train'], clustered_df['hotel_cluster'])
+map5neco = map5eval(clustered_df['recommended_train'].values, clustered_df['hotel_cluster'].values)
 print('map5', map5neco)
 
 
