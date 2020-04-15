@@ -109,7 +109,7 @@ clustered_df['sum'] = pd.Series(index=clustered_df.index, dtype=int)
 #clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['hotel_cluster'], r_matrix, destination_matrix)
 
 for i, row in clustered_df.iterrows():
-    clustered_df.at[i, 'recommended_train'] = recommend_5_top_hotel_cluster_2(clustered_df.at[i, 'user_id'], clustered_df.at[i, 'srch_destination_id'], utility_svd_matrix, destination_matrix)
+    clustered_df.at[i, 'recommended_train'] = recommend_5_top_hotel_cluster_2(clustered_df.at[i, 'clusters'], clustered_df.at[i, 'srch_destination_id'], utility_svd_matrix, destination_matrix)
     clustered_df.at[i, 'sum'] = sum(clustered_df.at[i, 'recommended_train'])
 
 print('recommended clusters are')
