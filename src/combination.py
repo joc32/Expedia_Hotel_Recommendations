@@ -10,7 +10,6 @@ def create_destination_matrix(subset_data):
     :return: destination matrix
     """
     np_subset_matrix = subset_data.to_numpy()
-    #print(np_subset_matrix[:10])
     last_dest_id = np_subset_matrix[-1, 2]
     n_hotel_clusters = 100
 
@@ -55,43 +54,20 @@ def create_destination_matrix(subset_data):
     return destination_matrix
 
 
-def create_r_matrix(utility_matrix, destination_matrix):
+def recommend_5_top_hotel_clusters(user_cluster, srch_destination_id, utility_matrix, destination_matrix):
     """
-    Generate R matrix, which is a dot product of utility matrix and destination matrix;
+        For given user cluster ID and srch_destination_id recommend top 5 hotel clusters based on utility_matrix
+        and destination_matrix. Get required row from utility_matrix by using user_cluster and required row from
+        destination_matrix by using destination_id, then do element-wise multiplication of two vectors, sort the
+        resulting vector and return hotel_clusters with 5 highest ratings.;
 
-    :param destination_matrix
-    :param utility_matrix
-    :return: R matrix
-    """
-    return utility_matrix.dot(destination_matrix.T)
+        :param user_cluster
+        :param srch_destination_id
+        :param utility_matrix
+        :param destination_matrix
+        :return: top_5_h_clusters
+        """
 
-
-def recommend_best_hotel_cluster(user_cluster, r_matrix, destination_matrix):
-    """
-    For given user cluster ID recommend top 5 hotel clusters based on R matrix and destination matrix ratings;
-
-    :param user_cluster
-    :param r_matrix
-    :param destination_matrix
-    :return: top_5_h_clusters
-    """
-
-    # find best destination_id for given user_cluster
-    sel_row = r_matrix[user_cluster]
-    top_destination_id = np.argsort(-sel_row)[0]
-
-    # find best hotel_cluster for given destination_id
-    sel_dest_row = destination_matrix[top_destination_id]
-    top_5_h_clusters = np.argsort(-sel_dest_row)[:5]
-
-    # print 5 best matches for given user_cluster
-    #print('for user_cluster {}, best hotel_clusters are {}'.format(user_cluster, top_5_h_clusters))
-
-    return top_5_h_clusters
-
-
-def recommend_5_top_hotel_cluster_2(user_cluster, destination_id, utility_matrix, destination_matrix):
-    # element-wise multiplication of hotel_clusters for given user_cluster and hotel_cluster for given destination_id
-    r_vector = utility_matrix[user_cluster] * destination_matrix[destination_id - 1]
+    r_vector = utility_matrix[user_cluster] * destination_matrix[srch_destination_id - 1]
     top_5 = np.argsort(-r_vector)[:5]
     return top_5

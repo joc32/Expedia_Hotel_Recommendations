@@ -28,12 +28,17 @@ warnings.filterwarnings('ignore')
 def run(slice):
     SLICE_LENGTH = int(slice)
 
-    # Load train dataset
-    train = pd.read_csv(os.path.join('datasets', '1percent.csv'))
-    print('  number of rows in sample', len(train))
+    # Load train dataset only with columns we need.
+    temp = pd.read_csv(
+        os.path.join('datasets', '1percent.csv'),
+        index_col=False,
+        usecols=['user_id', 'hotel_cluster', 'is_booking', 'srch_destination_id'])
+    print('  number of rows in sample', len(temp))
 
-    #Create a dataframe only with columns we need. And sort it by user_id.
-    temp = train[['user_id', 'hotel_cluster', 'is_booking', 'srch_destination_id']]
+    # Reorder columns to desired order
+    temp = temp.reindex(columns=['user_id', 'hotel_cluster', 'is_booking', 'srch_destination_id'])
+
+    # sort columns in dataframe by user_id.
     temp.sort_values(by=['user_id'], inplace=True)
 
     # out of 376703 ids, 262231 are unique.
@@ -78,9 +83,6 @@ def run(slice):
     print('  Destination Matrix creation.  ')
     destination_matrix = comb.create_destination_matrix(temp)
 
-    print('  R Matrix creation.  ')
-    r_matrix = comb.create_r_matrix(utility_svd_matrix, destination_matrix)
-
     # Vectorised implementation doesnt want to work, for now left.
     #clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['hotel_cluster'], r_matrix, destination_matrix)
     #clustered_df['recommended_train'] = recommend_5_top_hotel_cluster_2(clustered_df['clusters'],clustered_df['srch_destination_id'],utility_matrix,destination_matrix)
@@ -97,7 +99,7 @@ def run(slice):
 
     k=0
     for i, row in clustered_df.iterrows():
-        clustered_df.at[i, 'recommended_train'] = comb.recommend_5_top_hotel_cluster_2(clustered_df.at[i, 'clusters'], clustered_df.at[i, 'srch_destination_id'], utility_svd_matrix, destination_matrix)
+        clustered_df.at[i, 'recommended_train'] = comb.recommend_5_top_hotel_clusters(clustered_df.at[i, 'clusters'], clustered_df.at[i, 'srch_destination_id'], utility_svd_matrix, destination_matrix)
         #k+=1
         #print(k, 'iteration out of ',SLICE_LENGTH, clustered_df.at[i,'clusters'],clustered_df.at[i,'srch_destination_id'])
 
