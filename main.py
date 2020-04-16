@@ -62,7 +62,7 @@ def run(slice):
     normalised = um.get_distance_matrix(sliced_matrix)
 
     print('  Matrix Clustering.  ')
-    clustered_df, clusters = clt.cluster_users(normalised, temp)
+    clustered_df, clusters = clt.cluster_users(normalised, temp, SLICE_LENGTH)
 
     print('  Performing SVD  ')
     # Perform SVD on the clustered matrix to reduce sparsity
