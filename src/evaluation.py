@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 def map5eval(predicted, actual, k=5):
     #actual = dtrain.get_label()
@@ -9,6 +10,15 @@ def map5eval(predicted, actual, k=5):
         metric += np.sum(actual==y[:,i])/(i+1)
     metric /= actual.shape[0]
     return 'MAP@5', metric
+
+def random_recommendations(df):
+    df['random'] = pd.Series(index=df.index, dtype=object)
+
+    for i, row in df.iterrows():
+        df.at[i, 'random'] = np.random.randint(0,101,5)
+
+    map5_score = map5eval(df['random'].values, df['hotel_cluster'].values)
+    print(map5_score)
 
 def get_user_cluster():
     print('NOT IMPLEMENTED')

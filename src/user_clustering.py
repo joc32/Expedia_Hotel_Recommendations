@@ -16,11 +16,10 @@ def add_clusters_to_frame(or_data, clusters):
 
 def cluster_users(distance_matrix,dataframe):
     
-    cluster = AgglomerativeClustering(n_clusters=112,affinity='euclidean', linkage='ward')
+    cluster = AgglomerativeClustering(n_clusters=112, affinity='euclidean', linkage='ward')
 
     ### The clusters assigned to user proiles
     clusters = cluster.fit_predict(distance_matrix)
 
-    df = add_clusters_to_frame(dataframe,clusters)
-    print(df.head(10))
+    df = add_clusters_to_frame(dataframe, clusters)
     return df, clusters

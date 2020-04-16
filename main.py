@@ -23,41 +23,51 @@ pd.set_option('display.max_rows', 100)
 pd.set_option('display.width', None)
 warnings.filterwarnings('ignore')
 
+
+
 def run(slice):
     SLICE_LENGTH = int(slice)
 
     # Load train dataset
     train = pd.read_csv(os.path.join('datasets', '1percent.csv'))
-    print('number of rows in sample', len(train))
+    print('  number of rows in sample', len(train))
 
     #Create a dataframe only with columns we need. And sort it by user_id.
-    temp = train[['user_id','hotel_cluster','is_booking', 'srch_destination_id']]
+    temp = train[['user_id', 'hotel_cluster', 'is_booking', 'srch_destination_id']]
     temp.sort_values(by=['user_id'], inplace=True)
 
     # out of 376703 ids, 262231 are unique.
-    print('\n Number of unique User IDs:', temp['user_id'].nunique())
+    print('\n  Number of unique User IDs:', temp['user_id'].nunique())
+
 
     # Create Rating column for our dataframe.
     # Where booking == 1, give rating 5 otherwise give rating 1.
     temp['rating'] = np.where((temp['is_booking'] == 1), 5, 1)
 
+    print('  Utility Matrix creation.  ')
     # Create utility matrix out of temp
     utility_matrix = um.create_utility_matrix(df=temp)
-
     # Then slice it for further analysis.
-    sliced_matrix = utility_matrix[0:SLICE_LENGTH, :]
 
+    n = SLICE_LENGTH  # for 2 random indices
+    index = np.random.choice(utility_matrix.shape[0], n, replace=False)
+    sliced_matrix = utility_matrix[index, :]
+    #um.plot_hgram(sliced_matrix,'first_slice_train'+str(SLICE_LENGTH)+'.png')
+    #sliced_matrix = utility_matrix[0:SLICE_LENGTH, :]
+    #um.plot_hgram(sliced_matrix,'second')
+
+
+    print('  Utility Matrix Normalisation.  ')
     # Perform the Cosine Distance Calculation on our sliced matrix.
     normalised = um.get_distance_matrix(sliced_matrix)
 
-    print(um.calculate_ram(normalised))
-
-    #um.plot_hgram(normalised,'sliced_utility_cosine_normalised'+str(SLICE_LENGTH)+'.png')
-
+    print('  Matrix Clustering.  ')
     clustered_df, clusters = clt.cluster_users(normalised, temp)
 
+    print('  Performing SVD  ')
     # Perform SVD on the clustered matrix to reduce sparsity
     utility_svd_matrix = svd.construct_svd(clusters, sliced_matrix)
+    #um.plot_hgram(utility_svd_matrix, 'Clustered_UM_after_SVD'+str(SLICE_LENGTH)+'.png')
 
     # remove is_booking column which is no more needed
     temp = temp.loc[:, ['user_id', 'hotel_cluster', 'srch_destination_id', 'rating']]
@@ -65,10 +75,11 @@ def run(slice):
     #  sort by srch_destination_in
     temp.sort_values(by=['srch_destination_id'], inplace=True)
 
+    print('  Destination Matrix creation.  ')
     destination_matrix = comb.create_destination_matrix(temp)
-    r_matrix = comb.create_r_matrix(utility_svd_matrix, destination_matrix)
 
-    clustered_df['recommended_train'] = pd.Series(index=clustered_df.index, dtype=object)
+    print('  R Matrix creation.  ')
+    r_matrix = comb.create_r_matrix(utility_svd_matrix, destination_matrix)
 
     # Vectorised implementation doesnt want to work, for now left.
     #clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['hotel_cluster'], r_matrix, destination_matrix)
@@ -76,9 +87,19 @@ def run(slice):
 
     print('\n Calculating Recommendations...  \n')
 
+    print('hotel cluster value counts')
+    print(clustered_df['clusters'].value_counts())
+
+    plt.figure()
+    plt.hist(clustered_df['clusters'],bins=len(clustered_df['clusters'].value_counts()))
+    plt.savefig('figures/user_cluster_distribution.png')
+    clustered_df['recommended_train'] = pd.Series(index=clustered_df.index, dtype=object)
+
+    k=0
     for i, row in clustered_df.iterrows():
         clustered_df.at[i, 'recommended_train'] = comb.recommend_5_top_hotel_cluster_2(clustered_df.at[i, 'clusters'], clustered_df.at[i, 'srch_destination_id'], utility_svd_matrix, destination_matrix)
-    print('recommended clusters are')
+        #k+=1
+        #print(k, 'iteration out of ',SLICE_LENGTH, clustered_df.at[i,'clusters'],clustered_df.at[i,'srch_destination_id'])
 
     plt.figure()
     plt.title('Variance in Recommended Clusters')

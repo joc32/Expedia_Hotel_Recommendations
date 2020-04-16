@@ -33,9 +33,8 @@ def construct_svd(clusters, sliced_matrix):
     # Perfom Stochastic Gradient Descent to find U,V for X=U@V.T
     epochs = 200
 
-    plot_hgram(clustered_matrix,'Clustered Matrix before SVD')
-    U, V = sgd(clustered_matrix, rank, num_epochs=epochs, a=0.01, lamda=0.01, calculate_loss='FALSE')
-    plot_hgram(U@V.t(), 'Clustered Matrix SVD REDUCED')
+    plot_hgram(clustered_matrix,'Clustered_UM_before_SVD')
+    U, V = sgd(clustered_matrix, rank=rank, num_epochs=epochs, a=0.01, lamda=0.01, calculate_loss='FALSE')
 
     new_clustered = U@V.t()
 
@@ -133,7 +132,9 @@ def sgd_jozef(m, rank, num_epochs, a, lamda, calculate_loss):
                     V[c, :] = V[c, :] + a * e * U[r, :]
         if calculate_loss == 'TRUE':
             print(epoch)
-            losses.append(torch.nn.functional.mse_loss(input=m, target=U @ V.t(), reduction='sum'))
+            criterion = torch.nn.MSELoss()
+            loss = torch.sqrt(criterion(m, U@V.t()))
+            losses.append(loss)
 
     if calculate_loss == 'TRUE':
         plt.figure()

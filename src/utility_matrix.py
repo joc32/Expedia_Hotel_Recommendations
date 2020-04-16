@@ -25,7 +25,7 @@ def create_utility_matrix(df):
     last_user_id = int(df.iloc[-1].user_id)  # 1198777
 
     utility_matrix = np.zeros(shape=(last_user_id + 1, 100))
-    print('our utility matrix has shape', utility_matrix.shape)
+    print('  our utility matrix has shape', utility_matrix.shape)
 
     x = [data_matrix[:,0], data_matrix[:,1]]
     np.add.at(utility_matrix, x, data_matrix[:,2])
@@ -104,6 +104,7 @@ def calculate_ram(matrix):
 
 def plot_hgram(matrix,name):
     plt.figure(figsize=(20,20))
-    sns.heatmap(matrix)
+    #sns.set(font_scale=4.5)
+    sns.heatmap(matrix,cmap='jet')
     plt.title(name, fontsize=30)
     plt.savefig(os.path.join('figures',name))
