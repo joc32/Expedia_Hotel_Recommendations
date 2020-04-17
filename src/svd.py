@@ -2,6 +2,8 @@ from numpy.linalg import matrix_rank
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg')
 from src.utility_matrix import plot_hgram
 
 

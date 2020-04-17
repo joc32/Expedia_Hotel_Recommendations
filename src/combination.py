@@ -10,12 +10,13 @@ def create_destination_matrix(subset_data):
     :return: destination matrix
     """
     np_subset_matrix = subset_data.to_numpy()
-    last_dest_id = np_subset_matrix[-1, 2]
+    # the highest n_destination_id is in test dataset, taken from it
+    n_destination_ids = 65800
     n_hotel_clusters = 100
 
     # empty D matrix: (n of destinations x n of hotel clusters)
     # !!! destination_ids start with index 0 (e.i. dest_id 1 is at position 0) !!!
-    destination_matrix = np.zeros([last_dest_id, n_hotel_clusters])
+    destination_matrix = np.zeros([n_destination_ids, n_hotel_clusters])
 
     # calculate part of destination matrix for each hotel cluster separately
     for i in range(n_hotel_clusters):

@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import warnings
 import os
@@ -14,6 +15,9 @@ import src.svd as svd
 import src.combination as comb
 import src.decision_tree as tree
 import src.evaluation as evaluate
+from flask import json
+
+matplotlib.use('Agg')
 
 # Pandas options
 pd.set_option('display.precision', 10)
@@ -25,14 +29,21 @@ warnings.filterwarnings('ignore')
 
 
 
-def run(slice):
+def train(slice):
     SLICE_LENGTH = int(slice)
 
     # Load train dataset only with columns we need.
     temp = pd.read_csv(
-        os.path.join('datasets', '1percent.csv'),
+        'https://expedia-recommendations.s3.eu-central-1.amazonaws.com/1percent.csv',
         index_col=False,
         usecols=['user_id', 'hotel_cluster', 'is_booking', 'srch_destination_id'])
+
+
+    # Load train dataset only with columns we need.
+    #temp = pd.read_csv(
+    #    os.path.join('tmp', '1percent.csv'),
+    #    index_col=False,
+    #    usecols=['user_id', 'hotel_cluster', 'is_booking', 'srch_destination_id'])
     print('  number of rows in sample', len(temp))
 
     # Reorder columns to desired order
@@ -87,6 +98,11 @@ def run(slice):
     #clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['hotel_cluster'], r_matrix, destination_matrix)
     #clustered_df['recommended_train'] = recommend_5_top_hotel_cluster_2(clustered_df['clusters'],clustered_df['srch_destination_id'],utility_matrix,destination_matrix)
 
+    return clustered_df, destination_matrix, utility_svd_matrix
+
+
+def predict_train(clustered_df, destination_matrix, utility_svd_matrix):
+
     print('\n Calculating Recommendations...  \n')
 
     print('hotel cluster value counts')
@@ -110,22 +126,61 @@ def run(slice):
 
     map5_score = evaluate.map5eval(clustered_df['recommended_train'].values, clustered_df['hotel_cluster'].values)
     print('map5', map5_score)
+    return map5_score
 
 
-    # TEST DATASET FROM HERE
-    #test = pd.read_csv(os.path.join('datasets', 'test.csv'))
-    #test_ids = test[['user_id']]
-    #evaluate.rocess_test(test_ids, train)
+def predict_test(clustered_df, destination_matrix, utility_svd_matrix):
+    # open test dataset with required columns
+    test_df = pd.read_csv(
+        'https://expedia-recommendations.s3.eu-central-1.amazonaws.com/test.csv',
+        index_col=False,
+        usecols=['id', 'user_id', 'srch_destination_id'])
+    test_df = test_df.reindex(columns=['id', 'user_id', 'srch_destination_id'])
 
-if __name__ == '__main__':
+    print('  Clustering user_ids from test dataset.  ')
+    # append user clusters to test dataset
+    test_df = evaluate.append_user_clusters(test_df, clustered_df)
 
+    print('  Calculating recommendations and saving them to datasets/test_results.txt.  ')
+    # save results to test_results.txt file
+    test_results = open(os.path.join('datasets', 'test_results.txt'), 'w')
+    test_results.write('id,hotel_cluster\n')
+
+    for i, row in test_df.iterrows():
+        top5_results = comb.recommend_5_top_hotel_clusters(test_df.at[i, 'clusters'], test_df.at[i, 'srch_destination_id'], utility_svd_matrix, destination_matrix)
+        test_results.write(str(row['id']) + ',' + ' '.join(str(r) for r in top5_results) + '\n')
+    test_results.close()
+
+
+def main(request={}):
     start = time.time()
 
-    if len(sys.argv) > 1:
+    # handling slice when deployed to server
+    if request:
+        payload = json.loads(request.get_data().decode('utf-8'))
+        sl = payload['slice']
+
+    elif len(sys.argv) > 1:
         sl = sys.argv[1]
+
+    # handling slice when running locally
     else:
         sl = 1000
 
-    print('running recommendation algorithm with slice of', sl)
-    run(slice=sl)
-    print('it took', time.time()-start, 'seconds to run.')
+    print('training recommendation algorithm with slice of', sl)
+    clustered_df, destination_matrix, utility_svd_matrix = train(slice=sl)
+
+    print('running predictions on slice of', sl)
+    #map5_score = predict_train(clustered_df, destination_matrix, utility_svd_matrix)
+
+    predict_test(clustered_df, destination_matrix, utility_svd_matrix)
+
+    print('it took', time.time() - start, 'seconds to run.')
+
+    # # handling response when deployed to server
+    #if request:
+    #    return json.dumps({'score': map5_score})
+
+
+if __name__ == '__main__':
+    main()
