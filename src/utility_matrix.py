@@ -8,6 +8,7 @@ from scipy import spatial
 from sklearn.metrics import pairwise_distances
 import seaborn as sns
 import os
+from scipy.spatial.distance import cdist
 
 
 def create_utility_matrix(df):
@@ -54,7 +55,9 @@ def get_distance_matrix(matrix):
 
     # Generate distance matrix using Sklearn library out of
     # The normalised matrix.
-    dist_out = 1-pairwise_distances(matrix, metric="cosine")
+
+    dist_out = cdist(matrix, matrix, metric='cosine')
+    #dist_out = 1-pairwise_distances(matrix, metric="cosine")
     return dist_out
 
 def test_cosine():

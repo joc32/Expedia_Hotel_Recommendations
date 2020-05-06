@@ -13,9 +13,8 @@ import src.utility_matrix as um
 import src.user_clustering as clt
 import src.svd as svd
 import src.combination as comb
-import src.decision_tree as tree
 import src.evaluation as evaluate
-from flask import json
+import resource
 
 matplotlib.use('Agg')
 
@@ -30,20 +29,17 @@ warnings.filterwarnings('ignore')
 
 
 def train(slice):
-    SLICE_LENGTH = int(slice)
+    SLICE_PERCENTAGE = slice
 
     # Load train dataset only with columns we need.
     temp = pd.read_csv(
-        'https://expedia-recommendations.s3.eu-central-1.amazonaws.com/1percent.csv',
+        os.path.join('datasets', 'train.csv'),
         index_col=False,
         usecols=['user_id', 'hotel_cluster', 'is_booking', 'srch_destination_id'])
 
+    n = int(temp.shape[0] * SLICE_PERCENTAGE)
+    print(' Doing on slice ', n)
 
-    # Load train dataset only with columns we need.
-    #temp = pd.read_csv(
-    #    os.path.join('tmp', '1percent.csv'),
-    #    index_col=False,
-    #    usecols=['user_id', 'hotel_cluster', 'is_booking', 'srch_destination_id'])
     print('  number of rows in sample', len(temp))
 
     # Reorder columns to desired order
@@ -53,21 +49,29 @@ def train(slice):
     temp.sort_values(by=['user_id'], inplace=True)
 
     # out of 376703 ids, 262231 are unique.
-    print('\n  Number of unique User IDs:', temp['user_id'].nunique())
-
+    print('  Number of unique User IDs in train dataset:', temp['user_id'].nunique())
 
     # Create Rating column for our dataframe.
     # Where booking == 1, give rating 5 otherwise give rating 1.
     temp['rating'] = np.where((temp['is_booking'] == 1), 5, 1)
 
+    print('\n  Create new Sample  ')
+
+    # Create a sample to minimize the size of the utility matrix
+    sliced_temp, c = np.split(temp, [int(n)])
+    print('  New Slice size: ' + str(sliced_temp.shape))
+
+    print('  max RAM usage (linux kb, mac bytes)',
+          resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)
+
+    print('  Number of unique User IDs in  split dataset:', sliced_temp['user_id'].nunique())
+
     print('  Utility Matrix creation.  ')
     # Create utility matrix out of temp
-    utility_matrix = um.create_utility_matrix(df=temp)
+    utility_matrix = um.create_utility_matrix(df=sliced_temp)
+
     # Then slice it for further analysis.
 
-    n = SLICE_LENGTH  # for 2 random indices
-    index = np.random.choice(utility_matrix.shape[0], n, replace=False)
-    sliced_matrix = utility_matrix[index, :]
     #um.plot_hgram(sliced_matrix,'first_slice_train'+str(SLICE_LENGTH)+'.png')
     #sliced_matrix = utility_matrix[0:SLICE_LENGTH, :]
     #um.plot_hgram(sliced_matrix,'second')
@@ -75,14 +79,14 @@ def train(slice):
 
     print('  Utility Matrix Normalisation.  ')
     # Perform the Cosine Distance Calculation on our sliced matrix.
-    normalised = um.get_distance_matrix(sliced_matrix)
+    normalised = um.get_distance_matrix(utility_matrix)
 
     print('  Matrix Clustering.  ')
-    clustered_df, clusters = clt.cluster_users(normalised, temp, SLICE_LENGTH)
+    clustered_df, clusters = clt.cluster_users(normalised, sliced_temp, n, utility_matrix)
 
     print('  Performing SVD  ')
     # Perform SVD on the clustered matrix to reduce sparsity
-    utility_svd_matrix = svd.construct_svd(clusters, sliced_matrix)
+    utility_svd_matrix = svd.construct_svd(clusters, utility_matrix)
     #um.plot_hgram(utility_svd_matrix, 'Clustered_UM_after_SVD'+str(SLICE_LENGTH)+'.png')
 
     # remove is_booking column which is no more needed
@@ -93,10 +97,6 @@ def train(slice):
 
     print('  Destination Matrix creation.  ')
     destination_matrix = comb.create_destination_matrix(temp)
-
-    # Vectorised implementation doesnt want to work, for now left.
-    #clusters['recommended_train'] = recommend_best_hotel_cluster(clusters['hotel_cluster'], r_matrix, destination_matrix)
-    #clustered_df['recommended_train'] = recommend_5_top_hotel_cluster_2(clustered_df['clusters'],clustered_df['srch_destination_id'],utility_matrix,destination_matrix)
 
     return clustered_df, destination_matrix, utility_svd_matrix
 
@@ -116,8 +116,6 @@ def predict_train(clustered_df, destination_matrix, utility_svd_matrix):
     k=0
     for i, row in clustered_df.iterrows():
         clustered_df.at[i, 'recommended_train'] = comb.recommend_5_top_hotel_clusters(clustered_df.at[i, 'clusters'], clustered_df.at[i, 'srch_destination_id'], utility_svd_matrix, destination_matrix)
-        #k+=1
-        #print(k, 'iteration out of ',SLICE_LENGTH, clustered_df.at[i,'clusters'],clustered_df.at[i,'srch_destination_id'])
 
     plt.figure()
     plt.title('Variance in Recommended Clusters')
@@ -137,7 +135,7 @@ def predict_test(clustered_df, destination_matrix, utility_svd_matrix):
         usecols=['id', 'user_id', 'srch_destination_id'])
     test_df = test_df.reindex(columns=['id', 'user_id', 'srch_destination_id'])
 
-    print('  Clustering user_ids from test dataset.  ')
+    print('\n  Clustering user_ids from test dataset.  ')
     # append user clusters to test dataset
     test_df = evaluate.append_user_clusters(test_df, clustered_df)
 
@@ -152,34 +150,24 @@ def predict_test(clustered_df, destination_matrix, utility_svd_matrix):
     test_results.close()
 
 
-def main(request={}):
+def main():
+
     start = time.time()
 
-    # handling slice when deployed to server
-    if request:
-        payload = json.loads(request.get_data().decode('utf-8'))
-        sl = payload['slice']
-
-    elif len(sys.argv) > 1:
+    if len(sys.argv) > 1:
         sl = sys.argv[1]
-
-    # handling slice when running locally
     else:
-        sl = 1000
+        sl = 0.005
 
-    print('training recommendation algorithm with slice of', sl)
+    print('training recommendation algorithm with percentage of', sl)
     clustered_df, destination_matrix, utility_svd_matrix = train(slice=sl)
 
-    print('running predictions on slice of', sl)
+    print('running predictions on percentage of', sl)
     #map5_score = predict_train(clustered_df, destination_matrix, utility_svd_matrix)
 
     predict_test(clustered_df, destination_matrix, utility_svd_matrix)
 
     print('it took', time.time() - start, 'seconds to run.')
-
-    # # handling response when deployed to server
-    #if request:
-    #    return json.dumps({'score': map5_score})
 
 
 if __name__ == '__main__':

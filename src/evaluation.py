@@ -30,11 +30,25 @@ def append_user_clusters(test_df, clustered_df):
         :return test_df with user clusters column.
     """
     # make matrix from user_id and clusters
+    # create np matrix with user_id and clusters columns, find rows with unique user ids
     user_id_clusters = clustered_df.as_matrix(columns=['user_id', 'clusters'])
-    test_df['clusters'] = test_df['user_id'].apply(
-        lambda user_id:
-        get_cluster(user_id, user_id_clusters) if user_id in user_id_clusters[:, 0]
-        else get_decision_tree(user_id))
+    unique_user_id = np.unique(user_id_clusters[:, 0], return_index=True)
+
+    # create mapping unique user_ids to clusters
+    user_id_cluster_matrix = user_id_clusters[unique_user_id[1]][:, 1]
+    # create mask where user_id from test exists also in train
+    user_id_mask = np.isin(test_df['user_id'], user_id_clusters[:, 0])
+
+    # create new user_ids array where only users which exists
+    # TODO implement when user_id does not exist
+    masked_user_ids = np.where(user_id_mask == True, test_df['user_id'], 0)
+
+    # lambda function to add user cluster based on user_id
+    find_cluster = lambda user_id: user_id_cluster_matrix[user_id]
+    find_cluster_f = np.vectorize(find_cluster)
+    clusters = find_cluster_f(masked_user_ids)
+    test_df['clusters'] = clusters
+
     return test_df
 
 
