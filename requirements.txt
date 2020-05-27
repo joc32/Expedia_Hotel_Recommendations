@@ -4,4 +4,4 @@ scikit-learn==0.20.0
 matplotlib==3.2.0
 pandas==0.25.3
 seaborn==0.10.0
-https://download.pytorch.org/whl/cpu/torch-1.0.0-cp37-cp37m-linux_x86_64.whl
+torch==1.4.0

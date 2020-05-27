@@ -1,14 +1,13 @@
-import pandas as pd
-from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('Agg')
 import numpy as np
 from scipy import spatial
 from sklearn.metrics import pairwise_distances
-import seaborn as sns
+#import seaborn as sns
 import os
 from scipy.spatial.distance import cdist
+
+matplotlib.use('Agg')
 
 
 def create_utility_matrix(df):
@@ -57,7 +56,6 @@ def get_distance_matrix(matrix):
     # The normalised matrix.
 
     dist_out = cdist(matrix, matrix, metric='cosine')
-    #dist_out = 1-pairwise_distances(matrix, metric="cosine")
     return dist_out
 
 def test_cosine():
@@ -110,6 +108,6 @@ def calculate_ram(matrix):
 def plot_hgram(matrix,name):
     plt.figure(figsize=(20,20))
     #sns.set(font_scale=4.5)
-    sns.heatmap(matrix,cmap='jet')
+    #sns.heatmap(matrix,cmap='jet')
     plt.title(name, fontsize=30)
     plt.savefig(os.path.join('figures',name))

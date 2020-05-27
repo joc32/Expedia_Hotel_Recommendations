@@ -8,7 +8,6 @@ import itertools
 import sys
 import time
 
-# Our imports
 import src.utility_matrix as um
 import src.user_clustering as clt
 import src.svd as svd
@@ -29,7 +28,6 @@ warnings.filterwarnings('ignore')
 
 
 def train(slice):
-    SLICE_PERCENTAGE = slice
 
     # Load train dataset only with columns we need.
     temp = pd.read_csv(
@@ -37,10 +35,10 @@ def train(slice):
         index_col=False,
         usecols=['user_id', 'hotel_cluster', 'is_booking', 'srch_destination_id'])
 
-    n = int(temp.shape[0] * SLICE_PERCENTAGE)
+    n = int(temp.shape[0] * slice)
     print(' Doing on slice ', n)
 
-    print('  number of rows in sample', len(temp))
+    print(' Number of rows in sample', len(temp))
 
     # Reorder columns to desired order
     temp = temp.reindex(columns=['user_id', 'hotel_cluster', 'is_booking', 'srch_destination_id'])
@@ -82,7 +80,7 @@ def train(slice):
     normalised = um.get_distance_matrix(utility_matrix)
 
     print('  Matrix Clustering.  ')
-    clustered_df, clusters = clt.cluster_users(normalised, sliced_temp, n, utility_matrix)
+    clustered_df, clusters = clt.cluster_users(normalised, sliced_temp)
 
     print('  Performing SVD  ')
     # Perform SVD on the clustered matrix to reduce sparsity
@@ -130,7 +128,7 @@ def predict_train(clustered_df, destination_matrix, utility_svd_matrix):
 def predict_test(clustered_df, destination_matrix, utility_svd_matrix):
     # open test dataset with required columns
     test_df = pd.read_csv(
-        'https://expedia-recommendations.s3.eu-central-1.amazonaws.com/test.csv',
+        os.path.join('datasets', 'test.csv'),
         index_col=False,
         usecols=['id', 'user_id', 'srch_destination_id'])
     test_df = test_df.reindex(columns=['id', 'user_id', 'srch_destination_id'])
@@ -155,14 +153,15 @@ def main():
     start = time.time()
 
     if len(sys.argv) > 1:
-        sl = sys.argv[1]
+        slice = sys.argv[1]
     else:
-        sl = 0.005
+        # Specify dataset slice percentage on which make the recommendation
+        slice = 0.005
 
-    print('training recommendation algorithm with percentage of', sl)
-    clustered_df, destination_matrix, utility_svd_matrix = train(slice=sl)
+    print('training recommendation algorithm on', slice * 100, '% of dataset')
+    clustered_df, destination_matrix, utility_svd_matrix = train(slice=slice)
 
-    print('running predictions on percentage of', sl)
+    print('running predictions on ', slice * 100, '% of  dataset')
     #map5_score = predict_train(clustered_df, destination_matrix, utility_svd_matrix)
 
     predict_test(clustered_df, destination_matrix, utility_svd_matrix)

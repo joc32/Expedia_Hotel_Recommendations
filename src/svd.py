@@ -3,8 +3,10 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
-matplotlib.use('Agg')
+
 from src.utility_matrix import plot_hgram
+
+matplotlib.use('Agg')
 
 
 def construct_svd(clusters, sliced_matrix):
@@ -32,7 +34,7 @@ def construct_svd(clusters, sliced_matrix):
     # rank is the number of independent columns of a matrix
     rank = matrix_rank(clustered_matrix)
 
-    # Perfom Stochastic Gradient Descent to find U,V for X=U@V.T
+    # Perform Stochastic Gradient Descent to find U,V for X=U@V.T
     epochs = 200
 
     plot_hgram(clustered_matrix,'Clustered_UM_before_SVD')
